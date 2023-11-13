@@ -50,5 +50,39 @@ export const styles = StyleSheet.create({
     },
     boxText: {
         fontSize: 16
-    }
+    },
+    buttons: {
+        marginBottom: 50
+    },
+    buttonStart: {
+        width: 200,
+        height: 200,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 10,
+        borderRadius: 100,      
+    },
+    buttonStartText: {
+        fontSize: 40,
+        fontWeight: 'bold',
+    },
+    buttonContainer: {
+        flex: 1,
+        flexDirection: 'row',
+    },
+    buttonAdd: {
+        width: 100,
+        height: 100,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 10,
+        borderRadius: 100,
+        marginLeft: 25,
+        marginRight: 25,
+        
+    },
+    buttonAddText: {
+        fontSize: 25,
+        fontWeight: 'bold',
+    },
 })
