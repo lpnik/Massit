@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { styles } from "../Styles";
 import { StatusBar } from 'expo-status-bar';
 import { Link } from "expo-router";
@@ -24,7 +24,7 @@ export default function Page() {
         />
       </View>
 
-      <Link href={"/home"} asChild>
+      <Link href={"/(drawer)/home"} asChild>
         <Pressable style={styles.button} >
           <Text style={styles.buttonText}>
             Kirjaudu sisään
@@ -47,4 +47,5 @@ export default function Page() {
     </View>
   );
 }
+
 
