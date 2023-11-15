@@ -4,18 +4,20 @@ export const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#95EBFB',
-        justifyContent: 'flex-start',
         alignItems: 'center',
         alignContent: 'space-between',
         flexDirection: 'column',
       },
     hero: {
         textAlign: 'center',
-        paddingTop: 150,
+        paddingTop: 100,
         paddingBottom: 50,
     },
     heroText: {
         fontSize: 60,
+    },
+    heroTextShift: {
+        fontSize: 40,
     },
     input: {
         flexDirection: 'row',
@@ -30,12 +32,6 @@ export const styles = StyleSheet.create({
         fontSize: 20,
         backgroundColor:  '#FFFFFF',
         padding: 10,
-    },
-    info: {
-        fontSize: 20,
-        textAlign: 'center',
-        paddingLeft: 10,
-        margin: 20,
     },
     button: {
         alignItems: 'center',
@@ -90,5 +86,28 @@ export const styles = StyleSheet.create({
     buttonAddText: {
         fontSize: 25,
         fontWeight: 'bold',
+    },
+    info: {
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+    },
+    infoBox: {
+        flexDirection: 'row',
+        padding: 2,
+        backgroundColor: '#135771',
+        margin: 20,
+        borderRadius: 5,
+    },
+    infoInput: {
+        fontSize: 20,
+        padding: 10,
+        textAlign: 'center',
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'strech',
+        justifyContent: 'space-between',
+        margin: 8,
     },
 })

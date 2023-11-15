@@ -5,6 +5,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Drawer } from 'expo-router/drawer';
 import { DrawerToggleButton } from '@react-navigation/drawer';
+import { useState } from 'react';
 
 const Work = () => {
 
@@ -25,10 +26,13 @@ const Work = () => {
           <LinearGradient
             colors={['#75F8CC', '#45DCA9', '#13A674']}
             style={styles.buttonStart}>
-            <TouchableOpacity style={styles.buttonStart}>
+            <TouchableOpacity style={styles.buttonStart} >
               <Text style={styles.buttonStartText}>Aloita</Text>
             </TouchableOpacity>
           </LinearGradient>
+      </View>
+      <View>
+        <Text>Työvuoro alkoi: </Text>
       </View>
 
       <View style={styles.buttonContainer}>
@@ -56,3 +60,24 @@ const Work = () => {
 }
 
 export default Work;
+
+/*  const [currentDate, setCurrenDate] = useState(getDate());
+
+  const getDate = () => {
+
+  const today = new Date();
+
+  const month = today.getMonth()+1;
+  const year = today.getFullYear();
+  const date = today. getDate();
+  const hours = today.getHours();
+  const min = today.getMinutes();
+  const sec = today.getSeconds();
+  const currentDate = date + "." + month + "." + year;
+  const currentTime = hours + ":" + min + ":" + sec;
+
+  setCurrenDate(currentDate);
+
+  //return '${date}.${month}.${year}\n${hours}.${min}.${sec}';
+
+  }*/

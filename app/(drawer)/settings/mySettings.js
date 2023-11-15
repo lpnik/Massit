@@ -19,18 +19,19 @@ const MySettings = () => {
 
       <Text style={styles.heroText}>Asetukset</Text>
 
-      <View style={styles.input}>
-        <Text style={styles.info}>Tuntipalkka</Text>
-        <TextInput style={styles.inputText}
-          placeholder='0,00'
-        />
-      </View>
-
-      <View style={styles.input}>
-        <Text style={styles.info}>HCT-lisä</Text>
-        <TextInput style={styles.inputText}
-          placeholder='0,00'
-        />
+      <View style={styles.info}>
+        <View style={styles.infoBox}>
+          <Text style={styles.infoInput}>Tuntipalkka</Text>
+          <TextInput style={styles.inputText}
+            placeholder='0,00'
+          />
+        </View>
+        <View style={styles.infoBox}>
+          <Text style={styles.infoInput}>HCT-lisä</Text>
+          <TextInput style={styles.inputText}
+            placeholder='0,00'
+          />
+        </View>
       </View>
 
     </View>
