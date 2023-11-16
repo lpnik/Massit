@@ -73,8 +73,8 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     buttonAdd: {
-        width: 100,
-        height: 100,
+        width: 150,
+        height: 150,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 10,
@@ -86,6 +86,7 @@ export const styles = StyleSheet.create({
     buttonAddText: {
         fontSize: 25,
         fontWeight: 'bold',
+        textAlign: 'center',
     },
     info: {
         flexDirection: 'column',
