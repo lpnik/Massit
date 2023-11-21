@@ -12,9 +12,9 @@ const Work = () => {
   const [showDate, setShowDate] = useState(false)
   const today = new Date();
 
-  const [buttonText, setButtonText] = useState('Aloita');
-  const [buttonColor, setButtonColor] = useState(colors=['#75F8CC', '#45DCA9', '#13A674']);
-  const [buttonRest, setButtonRest] = useState('Tauko');
+  const [startText, setStartText] = useState('Aloita vuoro');
+  const [startColor, setStartColor] = useState(colors=['#75F8CC', '#45DCA9', '#13A674']);
+  const [restText, setRestText] = useState('Aloita tauko');
   const [restColor, setRestColor] = useState(colors=['#77DEEF', '#46BACD', '#1696AB']);
   const [addColor, setAddColor] = useState(colors=['#77DEEF', '#46BACD', '#1696AB']);
 
@@ -22,17 +22,24 @@ const Work = () => {
   const [running, setRunning] = useState(false);
   const intervalRef = useRef(null);
   const startTimeRef = useRef(0);
+  const [timeShift, setTimeShift] = useState(0);
 
-  const handleButtonText = () => {
-    setButtonText('Lopeta');
+  const [restTime, setRestTime] = useState(0);
+  const [restRunning, setRestRunning] = useState(false);
+  const intervalRest = useRef(null);
+  const restTimeRef = useRef(0);
+  const [timeRest, setTimeRest] = useState(0);
+
+  const handleStartText = () => {
+    setStartText('Lopeta vuoro');
   };
 
-  const handleButtonRest = () => {
-    setButtonRest('Tauko menossa');
+  const handleRestText = () => {
+    setRestText('Lopeta tauko');
   };
   
-  const handleButtonColor = () => {
-    setButtonColor(colors=['#F87575', '#DC4545', '#A61313'])
+  const handleStartColor = () => {
+    setStartColor(colors=['#F87575', '#DC4545', '#A61313'])
   }
 
   const handleRestColor = () => {
@@ -57,34 +64,58 @@ const Work = () => {
     console.log("currentDate", { currentDate });
   }, []);
 
-  const startShift = () => {
-    startTimeRef.current = Date.now() - time * 1000;
-    intervalRef.current = setInterval(() => {
-      setTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
-    }, 1000);
-    setRunning(true)
+  function startShift() {
+    if(!running)
+    {
+      startTimeRef.current = Date.now() - time * 1000;
+      intervalRef.current = setInterval(() => {
+        setTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
+      }, 1000);
+      setRunning(true);
+      setStartText('Lopeta vuoro')
+      setStartColor(colors=['#F87575', '#DC4545', '#A61313']);
+    }
+    else
+    {
+      clearInterval(intervalRef.current);
+      setTimeShift(time);
+      setTime(0);
+      setRunning(false);
+      setStartText('Aloita vuoro');
+      setStartColor(colors=['#75F8CC', '#45DCA9', '#13A674']);
+    }
   }
 
-  const pauseShift = () => {
-    clearInterval(intervalRef.current);
-    setRunning(false);
-  };
+  function pauseShift() {
+    if(running)
+    {
+      restTimeRef.current = Date.now() - restTime * 1000;
+      intervalRest.current = setInterval(() => {
+        setRestTime(Math.floor((Date.now() - restTimeRef.current) / 1000));
+      }, 1000);
 
-  const resetShift = () => {
-    clearInterval(intervalRef.current);
-    setTime(0);
-    setRunning(false);
+      clearInterval(intervalRef.current);
+      setRestRunning(true);
+      setRunning(false);
+      setRestText('Lopeta tauko');
+      setRestColor(colors=['#BE77EF', '#9546CD', '#6B16AB']);
+    }
+    else
+    {
+      startTimeRef.current = Date.now() - time * 1000;
+      intervalRef.current = setInterval(() => {
+        setTime(Math.floor(
+          (Date.now() - startTimeRef.current) / 1000));
+      }, 1000);
+      clearImmediate(intervalRest.current);
+      setTimeRest(restTime);
+      setRestTime(0);
+      setRestRunning(false);
+      setRunning(true);
+      setRestText('Aloita tauko');
+      setRestColor(colors=['#77DEEF', '#46BACD', '#1696AB']);
+    }
   };
-
-  const resumeShift = () => {
-    startTimeRef.current = Date.now() - time * 1000;
-    intervalRef.current = setInterval(() => {
-      setTime(Math.floor(
-        (Date.now() - startTimeRef.current) / 1000));
-    }, 1000);
-    setRunning(true);
-  };
-
 
   return (
 
@@ -99,64 +130,71 @@ const Work = () => {
         <Text style={styles.heroText}>Massit</Text>
       </View>
 
-
-        <View style={styles.buttons}>
-            <LinearGradient
-              colors={buttonColor}
-              style={styles.buttonStart}>  
-                <TouchableOpacity
-                  style={styles.buttonStart}
-                  onPress={() => {
-                    setShowDate(true);
-                    handleButtonText();
-                    handleButtonColor();
-                    startShift();
-                  }}
-                >
-                  <Text style={styles.buttonStartText}>{buttonText}</Text>
-                </TouchableOpacity>
-            </LinearGradient>
-              {showDate && (
-                <View>
-                  <Text>Työvuoro alkoi: {currentDate}</Text>
-                  <Text>Työvuoro kestänyt: {time}</Text>
-                </View>
-              )}
-        </View>
-
-
-        <View style={styles.buttonContainer}>
-
-          <LinearGradient
-            colors={restColor}
-            style={styles.buttonAdd}>
-            <TouchableOpacity 
-              style={styles.buttonAdd}
-              onPress={() => {
-                handleButtonRest();
-                handleRestColor();
-                pauseShift();
-              }}
-              >
-              <Text style={styles.buttonAddText}>{buttonRest}</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-          
-
-          <LinearGradient
-            colors={addColor}
-            style={styles.buttonAdd}>
+      <View style={styles.buttons}>
+        <LinearGradient
+          colors={startColor}
+          style={styles.buttonStart}>
+            
             <TouchableOpacity
-              style={styles.buttonAdd}
+              style={styles.buttonStart}
               onPress={() => {
-                handleAddColor();
-              }}>
-              <Text style={styles.buttonAddText}>HCT-</Text>
-              <Text style={styles.buttonAddText}>lisä</Text>
+                setShowDate(true);
+                handleStartText();
+                handleStartColor();
+                startShift();
+              }}
+            >
+              <Text style={styles.buttonStartText}>{startText}</Text>
             </TouchableOpacity>
-          </LinearGradient>
 
-        </View>
+        </LinearGradient>
+            {showDate && (
+              <View>
+                <Text>Työvuoro alkoi: {currentDate}</Text>
+                <Text>Työvuoro kestänyt: {time}</Text>
+                <Text>Työvuoro kesti: {timeShift}</Text>
+              </View>
+            )}
+      </View>
+      <View style={styles.buttonContainer}>
+
+        <LinearGradient
+          colors={restColor}
+          style={styles.buttonAdd}>
+          <TouchableOpacity 
+            style={styles.buttonAdd}
+            onPress={() => {
+              handleRestText();
+              handleRestColor();
+              pauseShift();
+            }}
+            >
+            <Text style={styles.buttonAddText}>{restText}</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+
+        <LinearGradient
+          colors={addColor}
+          style={styles.buttonAdd}>
+          <TouchableOpacity
+            style={styles.buttonAdd}
+            onPress={() => {
+              handleAddColor();
+            }}>
+            <Text style={styles.buttonAddText}>HCT-</Text>
+            <Text style={styles.buttonAddText}>lisä</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+
+      </View>
+
+        {showDate && (
+          <View>
+            <Text>Tauko alkoi: {currentDate}</Text>
+            <Text>Tauko kestänyt: {restTime}</Text>
+            <Text>Tauko kesti: {timeRest}</Text>
+          </View>
+        )}
 
 
     </View>

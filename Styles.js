@@ -10,7 +10,7 @@ export const styles = StyleSheet.create({
       },
     hero: {
         textAlign: 'center',
-        paddingTop: 100,
+        paddingTop: 10,
         paddingBottom: 50,
     },
     heroText: {
