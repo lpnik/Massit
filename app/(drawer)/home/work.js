@@ -6,8 +6,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Drawer } from 'expo-router/drawer';
 import { DrawerToggleButton } from '@react-navigation/drawer';
 import { useState, useEffect, useRef } from 'react';
+import * as SQLite from 'expo-sqlite';
+import { Link } from 'expo-router';
 
 const Work = () => {
+  const db = SQLite.openDatabase('shifts.db');
+  const [shifts, setShifts] = useState([]);
+
   const [currentDate, setCurrentDate] = useState('');
   const [showDate, setShowDate] = useState(false)
   const today = new Date();
@@ -64,7 +69,22 @@ const Work = () => {
     console.log("currentDate", { currentDate });
   }, []);
 
+  const addShift = (timeShift) => {
+    db.transaction(tx => {
+      tx.executeSql('INSERT INTO shifts (shift) values (?)', [timeShift],
+        (txObj, resultSet) => {
+          let existingShifts = [...shifts];
+          existingShifts.push({id: resultSet.insertId, shift: timeShift});
+          setShifts(existingShifts);
+        },
+        (txObj, error) => console.log(error)
+      );
+    });
+  };
+
   function startShift() {
+    const formattedTime = formatTime(time);
+    //const timeRunning = formatTime(restTime);
     if(!running)
     {
       startTimeRef.current = Date.now() - time * 1000;
@@ -78,15 +98,18 @@ const Work = () => {
     else
     {
       clearInterval(intervalRef.current);
-      setTimeShift(time);
-      setTime(0);
+      setTimeShift(formattedTime);
+      setTimeRunning(time);
       setRunning(false);
       setStartText('Aloita vuoro');
       setStartColor(colors=['#75F8CC', '#45DCA9', '#13A674']);
+      addShift(time);
     }
   }
 
   function pauseShift() {
+    const formattedTime = formatTime(restTime);
+
     if(running)
     {
       restTimeRef.current = Date.now() - restTime * 1000;
@@ -108,7 +131,7 @@ const Work = () => {
           (Date.now() - startTimeRef.current) / 1000));
       }, 1000);
       clearImmediate(intervalRest.current);
-      setTimeRest(restTime);
+      setTimeRest(formattedTime);
       setRestTime(0);
       setRestRunning(false);
       setRunning(true);
@@ -116,6 +139,15 @@ const Work = () => {
       setRestColor(colors=['#77DEEF', '#46BACD', '#1696AB']);
     }
   };
+
+  const formatTime = (timeInSeconds) => {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = timeInSeconds % 60;
+  
+    return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
 
   return (
 
@@ -151,7 +183,7 @@ const Work = () => {
             {showDate && (
               <View>
                 <Text>Työvuoro alkoi: {currentDate}</Text>
-                <Text>Työvuoro kestänyt: {time}</Text>
+                <Text>Työvuoro kestänyt: {timeRunning}</Text>
                 <Text>Työvuoro kesti: {timeShift}</Text>
               </View>
             )}
@@ -195,9 +227,8 @@ const Work = () => {
             <Text>Tauko kesti: {timeRest}</Text>
           </View>
         )}
-
-
     </View>
+
 
     );
 }

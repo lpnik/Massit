@@ -1,8 +1,5 @@
-import { Text, View } from 'react-native';
+import { TouchableOpacity, Text, View } from 'react-native';
 import { styles } from "c:/OpiskeluEOD/Massit/Styles";
-import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Drawer } from 'expo-router/drawer';
 import { DrawerToggleButton } from '@react-navigation/drawer';
 import * as SQLite from 'expo-sqlite';
@@ -39,13 +36,42 @@ export default function MyShifts() {
 
   const showShifts = () => {
     return shifts.map((shift, index) => {
+      const formattedTime = formatTime(shift.shift);
+
       return (
-        <View style={styles.row}>
-          <Text>{shift.shift}</Text>
+        <View style={styles.row} key={index}>
+          <Text>{formattedTime}</Text>
+          <TouchableOpacity onPress={() => delData(shift.id)}>
+            <Text> Delete</Text>
+          </TouchableOpacity>
+
         </View>
       );
     });
-  }
+  };
+
+  const formatTime = (timeInSeconds) => {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = timeInSeconds % 60;
+  
+    return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
+
+  const delData = (id) => {
+    db.transaction(tx => {
+      tx.executeSql('DELETE FROM shifts WHERE id = ?', [id],
+      (txObj, resultSet) => {
+        if (resultSet.rowsAffected > 0) {
+          let existingShifts = [...shifts].filter(shift => shift.id !== id);
+          setShifts(existingShifts);
+        }
+      },
+      (txObj, error) => console.log(error)
+      );
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -62,3 +88,12 @@ export default function MyShifts() {
     </View>
   );
 }
+
+/*
+          <Pressable
+            onPress={() => {
+              delData(shift.id)
+            }}>
+            <Text>Delete</Text>
+          </Pressable>
+*/
