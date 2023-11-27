@@ -28,6 +28,7 @@ const Work = () => {
   const intervalRef = useRef(null);
   const startTimeRef = useRef(0);
   const [timeShift, setTimeShift] = useState(0);
+  const [dateShift, setDateShift] = useState(0);
 
   const [restTime, setRestTime] = useState(0);
   const [restRunning, setRestRunning] = useState(false);
@@ -69,12 +70,12 @@ const Work = () => {
     console.log("currentDate", { currentDate });
   }, []);
 
-  const addShift = (timeShift) => {
+  const addShift = (dateShift, timeShift, timeRest) => {
     db.transaction(tx => {
-      tx.executeSql('INSERT INTO shifts (shift) values (?)', [timeShift],
+      tx.executeSql('INSERT INTO shifts (date, time, rest) VALUES (?,?,?)', [dateShift, timeShift, timeRest],
         (txObj, resultSet) => {
           let existingShifts = [...shifts];
-          existingShifts.push({id: resultSet.insertId, shift: timeShift});
+          existingShifts.push({id: resultSet.insertId, date: dateShift, time: timeShift, rest: timeRest});
           setShifts(existingShifts);
         },
         (txObj, error) => console.log(error)
@@ -99,11 +100,12 @@ const Work = () => {
     {
       clearInterval(intervalRef.current);
       setTimeShift(formattedTime);
-      setTimeRunning(time);
+      setDateShift(currentDate);
+      //setTimeRunning(time);
       setRunning(false);
       setStartText('Aloita vuoro');
       setStartColor(colors=['#75F8CC', '#45DCA9', '#13A674']);
-      addShift(time);
+      addShift(currentDate, time);
     }
   }
 
@@ -183,8 +185,8 @@ const Work = () => {
             {showDate && (
               <View>
                 <Text>Työvuoro alkoi: {currentDate}</Text>
-                <Text>Työvuoro kestänyt: {timeRunning}</Text>
-                <Text>Työvuoro kesti: {timeShift}</Text>
+                <Text>Työvuoro kestänyt: {time}</Text>
+                <Text>Työvuoro kesti: {timeShift} pvn {dateShift}</Text>
               </View>
             )}
       </View>

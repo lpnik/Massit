@@ -13,7 +13,7 @@ export default function MyShifts() {
 
   useEffect(() => {
     db.transaction(tx => {
-      tx.executeSql('CREATE TABLE IF NOT EXISTS shifts (id INTEGER PRIMARY KEY AUTOINCREMENT, shift TEXT)')
+      tx.executeSql('CREATE TABLE IF NOT EXISTS shifts (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, time TEXT, rest TEXT)')
     });
 
     db.transaction(tx => {
@@ -36,14 +36,18 @@ export default function MyShifts() {
 
   const showShifts = () => {
     return shifts.map((shift, index) => {
-      const formattedTime = formatTime(shift.shift);
+      const formattedTime = formatTime(shift.time);
 
       return (
         <View style={styles.row} key={index}>
-          <Text>{formattedTime}</Text>
-          <TouchableOpacity onPress={() => delData(shift.id)}>
-            <Text> Delete</Text>
-          </TouchableOpacity>
+            <Text>Päivämäärä: {shift.date} {'\n'}
+              Aika: {formattedTime} {'\n'}
+              Tauko {shift.rest} {'\n'}
+              -----------------------------------------
+            </Text> 
+            <TouchableOpacity onPress={() => delData(shift.id)}>
+              <Text> Delete</Text>
+            </TouchableOpacity>
 
         </View>
       );
@@ -73,6 +77,22 @@ export default function MyShifts() {
     });
   };
 
+  const dropTable = () => {
+    db.transaction(tx => {
+      tx.executeSql('DROP TABLE IF EXISTS shifts');
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text>Tehdyt työvuorot latautuvat...</Text>
+      </View>
+    );
+  }
+
+  
+
   return (
     <View style={styles.container}>
       <Drawer.Screen options={{
@@ -85,6 +105,10 @@ export default function MyShifts() {
 
       <Text value={currentShift} />
       {showShifts()}
+
+      <TouchableOpacity onPress={dropTable}>
+        <Text>Drop Table</Text>
+      </TouchableOpacity>
     </View>
   );
 }
