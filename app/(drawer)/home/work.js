@@ -1,13 +1,11 @@
 import { Text, View } from 'react-native';
 import { styles } from "c:/OpiskeluEOD/Massit/Styles";
-import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Drawer } from 'expo-router/drawer';
 import { DrawerToggleButton } from '@react-navigation/drawer';
 import { useState, useEffect, useRef } from 'react';
 import * as SQLite from 'expo-sqlite';
-import { Link } from 'expo-router';
 
 const Work = () => {
   const db = SQLite.openDatabase('shifts.db');
@@ -15,15 +13,19 @@ const Work = () => {
 
   const [currentDate, setCurrentDate] = useState('');
   const [showDate, setShowDate] = useState(false)
+  const [showInfoShiftStart, setShowInfoShiftStart] = useState(false)
+  const [showInfoShiftEnd, setShowInfoShiftEnd] = useState(false)
+  const [showInfoRestStart, setShowInfoRestStart] = useState(false)
+  const [showInfoRestEnd, setShowInfoRestEnd] = useState(false)
   const today = new Date();
 
-  const [startText, setStartText] = useState('Aloita vuoro');
-  const [startColor, setStartColor] = useState(colors=['#75F8CC', '#45DCA9', '#13A674']);
-  const [restText, setRestText] = useState('Aloita tauko');
-  const [restColor, setRestColor] = useState(colors=['#77DEEF', '#46BACD', '#1696AB']);
-  const [addColor, setAddColor] = useState(colors=['#77DEEF', '#46BACD', '#1696AB']);
+  const [startText, setStartText] = useState('AloitaA\n');
+  const [startColor, setStartColor] = useState(['#75F8CC', '#45DCA9', '#13A674']);
+  const [restText, setRestText] = useState('TaukoA\n');
+  const [restColor, setRestColor] = useState(['#77DEEF', '#46BACD', '#1696AB']);
+  const [addColor, setAddColor] = useState(['#77DEEF', '#46BACD', '#1696AB']);
 
-  const [time, setTime] = useState(0);
+  const [timeS, setTime] = useState(0);
   const [running, setRunning] = useState(false);
   const intervalRef = useRef(null);
   const startTimeRef = useRef(0);
@@ -45,15 +47,15 @@ const Work = () => {
   };
   
   const handleStartColor = () => {
-    setStartColor(colors=['#F87575', '#DC4545', '#A61313'])
+    setStartColor(['#F87575', '#DC4545', '#A61313']);
   }
 
   const handleRestColor = () => {
-    setRestColor(colors=['#BE77EF', '#9546CD', '#6B16AB'])
+    setRestColor(['#BE77EF', '#9546CD', '#6B16AB']);
   }
 
   const handleAddColor = () => {
-    setAddColor(colors=['#BE77EF', '#9546CD', '#6B16AB'])
+    setAddColor(['#BE77EF', '#9546CD', '#6B16AB'])
   }
 
   useEffect(() => {
@@ -70,50 +72,82 @@ const Work = () => {
     console.log("currentDate", { currentDate });
   }, []);
 
-  const addShift = (dateShift, timeShift, timeRest) => {
+  const addShift = (dateShift, timeS, restTime) => {
+
     db.transaction(tx => {
-      tx.executeSql('INSERT INTO shifts (date, time, rest) VALUES (?,?,?)', [dateShift, timeShift, timeRest],
-        (txObj, resultSet) => {
-          let existingShifts = [...shifts];
-          existingShifts.push({id: resultSet.insertId, date: dateShift, time: timeShift, rest: timeRest});
-          setShifts(existingShifts);
+      console.log("In SELECT ");
+      tx.executeSql(
+        'SELECT * FROM shifts WHERE date = ?',
+        [dateShift],
+        (_, { rows }) => {
+          if (rows.length > 0) {
+            const existingShift = rows.item(0);
+            const updatedTimeShift = existingShift.time + timeS;
+            const updatedTimeRest = existingShift.rest + restTime;
+            console.log("Before update query");
+            tx.executeSql(
+              'UPDATE shifts SET time = ?, rest = ? WHERE date = ?',
+              [updatedTimeShift, updatedTimeRest, dateShift],
+              () => console.log('Shift updated', {updatedTimeShift}),
+              error => console.log(error)
+            );
+          } else {
+            tx.executeSql(
+              'INSERT INTO shifts (date, time, rest) VALUES (?,?,?)',
+              [dateShift, timeS, restTime],
+              (_, { insertId }) => {
+                let existingShifts = [...shifts];
+                existingShifts.push({
+                  id: insertId,
+                  date: dateShift,
+                  time: timeS,
+                  rest: restTime,
+                });
+                setShifts(existingShifts);
+              },
+              error => console.log(error)
+            );
+          }
         },
-        (txObj, error) => console.log(error)
+        error => console.log(error)
       );
     });
   };
 
   function startShift() {
-    const formattedTime = formatTime(time);
-    //const timeRunning = formatTime(restTime);
-    if(!running)
-    {
-      startTimeRef.current = Date.now() - time * 1000;
+    const formattedTime = formatTime(timeS);
+
+    if(!running && !restRunning){
+      console.log("Starting shift");
+      startTimeRef.current = Date.now() - timeS * 1000;
       intervalRef.current = setInterval(() => {
         setTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
       }, 1000);
       setRunning(true);
-      setStartText('Lopeta vuoro')
-      setStartColor(colors=['#F87575', '#DC4545', '#A61313']);
+      setStartText('Lopeta\n');
+      setStartColor(['#F87575', '#DC4545', '#A61313']);
     }
-    else
-    {
+    else if (running && !restRunning){
+      console.log("Stopping shift");
       clearInterval(intervalRef.current);
       setTimeShift(formattedTime);
       setDateShift(currentDate);
-      //setTimeRunning(time);
       setRunning(false);
-      setStartText('Aloita vuoro');
-      setStartColor(colors=['#75F8CC', '#45DCA9', '#13A674']);
-      addShift(currentDate, time);
+      setStartText('Vuoro kesti\n');
+      setShowInfoShiftStart(false);
+      setShowInfoShiftEnd(true);
+      setStartColor(['#75F8CC', '#45DCA9', '#13A674']);
+      console.log("In startShift(): ", {timeS})
+      addShift(currentDate, timeS, restTime);
+      console.log("In startShift(): ", {timeS}, {formattedTime}, {restTime})
     }
   }
 
   function pauseShift() {
-    const formattedTime = formatTime(restTime);
+    console.log("Entering pauseShift");
+    const formattedTimeRest = formatTime(restTime);
 
-    if(running)
-    {
+    if(running){
       restTimeRef.current = Date.now() - restTime * 1000;
       intervalRest.current = setInterval(() => {
         setRestTime(Math.floor((Date.now() - restTimeRef.current) / 1000));
@@ -122,25 +156,29 @@ const Work = () => {
       clearInterval(intervalRef.current);
       setRestRunning(true);
       setRunning(false);
-      setRestText('Lopeta tauko');
-      setRestColor(colors=['#BE77EF', '#9546CD', '#6B16AB']);
+      setRestText('Lopeta\n');
+      setRestColor(['#BE77EF', '#9546CD', '#6B16AB']);
     }
-    else
-    {
-      startTimeRef.current = Date.now() - time * 1000;
+    else{
+      startTimeRef.current = Date.now() - timeS * 1000;
       intervalRef.current = setInterval(() => {
         setTime(Math.floor(
           (Date.now() - startTimeRef.current) / 1000));
       }, 1000);
       clearImmediate(intervalRest.current);
-      setTimeRest(formattedTime);
-      setRestTime(0);
+      setTimeRest(formattedTimeRest);
       setRestRunning(false);
       setRunning(true);
-      setRestText('Aloita tauko');
-      setRestColor(colors=['#77DEEF', '#46BACD', '#1696AB']);
+      setRestText('Aloita tauko\n');
+      setShowInfoRestStart(false);
+      setShowInfoRestEnd(true);
+
+      setRestColor(['#77DEEF', '#46BACD', '#1696AB']);
+      console.log("In pauseShift(); ", {restTime})
     }
+    console.log("Exiting pauseShift")
   };
+
 
   const formatTime = (timeInSeconds) => {
     const hours = Math.floor(timeInSeconds / 3600);
@@ -149,7 +187,6 @@ const Work = () => {
   
     return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
-
 
   return (
 
@@ -173,22 +210,26 @@ const Work = () => {
               style={styles.buttonStart}
               onPress={() => {
                 setShowDate(true);
+                setShowInfoShiftStart(true);
                 handleStartText();
                 handleStartColor();
                 startShift();
               }}
             >
-              <Text style={styles.buttonStartText}>{startText}</Text>
+              <Text style={styles.buttonStartText}>
+                {startText} 
+                {showInfoShiftStart && (
+                  <Text>Kestänyt: {timeS}</Text>
+                )}
+
+                {showInfoShiftEnd && (
+                  <Text>{timeShift}</Text>
+                )}
+
+              </Text>
             </TouchableOpacity>
 
         </LinearGradient>
-            {showDate && (
-              <View>
-                <Text>Työvuoro alkoi: {currentDate}</Text>
-                <Text>Työvuoro kestänyt: {time}</Text>
-                <Text>Työvuoro kesti: {timeShift} pvn {dateShift}</Text>
-              </View>
-            )}
       </View>
       <View style={styles.buttonContainer}>
 
@@ -198,12 +239,22 @@ const Work = () => {
           <TouchableOpacity 
             style={styles.buttonAdd}
             onPress={() => {
+              setShowInfoRestStart(true);
               handleRestText();
               handleRestColor();
               pauseShift();
             }}
             >
-            <Text style={styles.buttonAddText}>{restText}</Text>
+            <Text style={styles.buttonAddText}>
+              {restText} 
+                {showInfoShiftStart && (
+                  <Text>Kestänyt: {restTime}</Text>
+                )}
+
+                {showInfoShiftEnd && (
+                  <Text>Edellinen tauko: {timeRest}</Text>
+                )}
+            </Text>
           </TouchableOpacity>
         </LinearGradient>
 
@@ -221,14 +272,6 @@ const Work = () => {
         </LinearGradient>
 
       </View>
-
-        {showDate && (
-          <View>
-            <Text>Tauko alkoi: {currentDate}</Text>
-            <Text>Tauko kestänyt: {restTime}</Text>
-            <Text>Tauko kesti: {timeRest}</Text>
-          </View>
-        )}
     </View>
 
 
@@ -236,6 +279,3 @@ const Work = () => {
 }
 
 export default Work;
-
-// 190 276 21
-// #BE77EF #9546CD #6B16AB

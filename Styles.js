@@ -65,7 +65,7 @@ export const styles = StyleSheet.create({
         borderRadius: 100,      
     },
     buttonStartText: {
-        fontSize: 40,
+        fontSize: 20,
         fontWeight: 'bold',
     },
     buttonContainer: {
@@ -84,7 +84,7 @@ export const styles = StyleSheet.create({
         
     },
     buttonAddText: {
-        fontSize: 25,
+        fontSize: 18,
         fontWeight: 'bold',
         textAlign: 'center',
     },

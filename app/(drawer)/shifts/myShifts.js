@@ -36,13 +36,15 @@ export default function MyShifts() {
 
   const showShifts = () => {
     return shifts.map((shift, index) => {
-      const formattedTime = formatTime(shift.time);
+      const formattedTime = formatTime(parseInt(shift.time));
+      const formattedTimeRest = formatTime(parseInt(shift.rest));
 
       return (
         <View style={styles.row} key={index}>
-            <Text>Päivämäärä: {shift.date} {'\n'}
+            <Text>
+              Päivämäärä: {shift.date} {'\n'}
               Aika: {formattedTime} {'\n'}
-              Tauko {shift.rest} {'\n'}
+              Tauko: {formattedTimeRest} {'\n'}
               -----------------------------------------
             </Text> 
             <TouchableOpacity onPress={() => delData(shift.id)}>
@@ -61,7 +63,6 @@ export default function MyShifts() {
   
     return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
-
 
   const delData = (id) => {
     db.transaction(tx => {
@@ -91,8 +92,6 @@ export default function MyShifts() {
     );
   }
 
-  
-
   return (
     <View style={styles.container}>
       <Drawer.Screen options={{
@@ -109,6 +108,10 @@ export default function MyShifts() {
       <TouchableOpacity onPress={dropTable}>
         <Text>Drop Table</Text>
       </TouchableOpacity>
+
+      <Text>
+        Palkka:
+      </Text>
     </View>
   );
 }
