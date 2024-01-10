@@ -14,14 +14,7 @@ export default function Layout() {
 
         }}
         ></Drawer.Screen>
-        <Drawer.Screen 
-            name="settings" 
-            options={{
-                drawerLabel: "Asetukset",
-                title: "Asetukset",
-                drawerIcon: ({size}) => <Ionicons name= "md-settings" size = {size} color = {"#135771"}/>
-        }}
-        ></Drawer.Screen>
+
         <Drawer.Screen 
             name="shifts" 
             options={{
@@ -33,3 +26,13 @@ export default function Layout() {
     </Drawer>
   );
 }
+
+/*
+        <Drawer.Screen 
+            name="settings" 
+            options={{
+                drawerLabel: "Asetukset",
+                title: "Asetukset",
+                drawerIcon: ({size}) => <Ionicons name= "md-settings" size = {size} color = {"#135771"}/>
+        }}
+        ></Drawer.Screen>*/

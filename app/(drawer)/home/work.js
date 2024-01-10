@@ -1,5 +1,5 @@
 import { Text, View } from 'react-native';
-import { styles } from "c:/OpiskeluEOD/Massit/Styles";
+import { styles } from '../../../Styles';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Drawer } from 'expo-router/drawer';
@@ -19,20 +19,20 @@ const Work = () => {
   const [showInfoRestEnd, setShowInfoRestEnd] = useState(false)
   const today = new Date();
 
-  const [startText, setStartText] = useState('AloitaA\n');
+  const [startText, setStartText] = useState('Aloita');
   const [startColor, setStartColor] = useState(['#75F8CC', '#45DCA9', '#13A674']);
-  const [restText, setRestText] = useState('TaukoA\n');
+  const [restText, setRestText] = useState('Tauko');
   const [restColor, setRestColor] = useState(['#77DEEF', '#46BACD', '#1696AB']);
-  const [addColor, setAddColor] = useState(['#77DEEF', '#46BACD', '#1696AB']);
 
   const [timeS, setTime] = useState(0);
   const [running, setRunning] = useState(false);
   const intervalRef = useRef(null);
   const startTimeRef = useRef(0);
   const [timeShift, setTimeShift] = useState(0);
-  const [dateShift, setDateShift] = useState(0);
+  const [dateShift, setDateShift] = useState(new Date());
 
-  const [restTime, setRestTime] = useState(0);
+  const [currentRestStart, setCurrentRestStart] = useState(0);
+  const [restTime, setRestTime] = useState([]);
   const [restRunning, setRestRunning] = useState(false);
   const intervalRest = useRef(null);
   const restTimeRef = useRef(0);
@@ -54,10 +54,6 @@ const Work = () => {
     setRestColor(['#BE77EF', '#9546CD', '#6B16AB']);
   }
 
-  const handleAddColor = () => {
-    setAddColor(['#BE77EF', '#9546CD', '#6B16AB'])
-  }
-
   useEffect(() => {
     const date = today. getDate();
     const month = today.getMonth()+1;
@@ -66,7 +62,7 @@ const Work = () => {
     const min = today.getMinutes();
     const sec = today.getSeconds();
   
-    const formattedDate = `${date}.${month}.${year}\n klo ${hours}:${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
+    const formattedDate = `${date}.${month}.${year} ${hours}:${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
     setCurrentDate(formattedDate);
     setShowDate(false);
     console.log("currentDate", { currentDate });
@@ -86,15 +82,15 @@ const Work = () => {
             const updatedTimeRest = existingShift.rest + restTime;
             console.log("Before update query");
             tx.executeSql(
-              'UPDATE shifts SET time = ?, rest = ? WHERE date = ?',
-              [updatedTimeShift, updatedTimeRest, dateShift],
+              'UPDATE shifts SET time = ?, rest = ?, timeShift = ? WHERE date = ?',
+              [updatedTimeShift, updatedTimeRest, dateShift.toISOString()],
               () => console.log('Shift updated', {updatedTimeShift}),
               error => console.log(error)
             );
           } else {
             tx.executeSql(
               'INSERT INTO shifts (date, time, rest) VALUES (?,?,?)',
-              [dateShift, timeS, restTime],
+              [dateShift, timeS, JSON.stringify(restTime)],
               (_, { insertId }) => {
                 let existingShifts = [...shifts];
                 existingShifts.push({
@@ -105,11 +101,11 @@ const Work = () => {
                 });
                 setShifts(existingShifts);
               },
-              error => console.log(error)
+              error => console.log("INSERT error", error)
             );
           }
         },
-        error => console.log(error)
+        error => console.log("SELECT error", error)
       );
     });
   };
@@ -124,40 +120,43 @@ const Work = () => {
         setTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
       }, 1000);
       setRunning(true);
-      setStartText('Lopeta\n');
+      setStartText('Lopeta');
       setStartColor(['#F87575', '#DC4545', '#A61313']);
     }
     else if (running && !restRunning){
       console.log("Stopping shift");
       clearInterval(intervalRef.current);
       setTimeShift(formattedTime);
-      setDateShift(currentDate);
+      setDateShift(new Date());
       setRunning(false);
       setStartText('Vuoro kesti\n');
       setShowInfoShiftStart(false);
       setShowInfoShiftEnd(true);
       setStartColor(['#75F8CC', '#45DCA9', '#13A674']);
-      console.log("In startShift(): ", {timeS})
+      formatTime(timeRest, true);
+      console.log("In startShift(): ", {timeS});
+      setRestTime([]);
+      setCurrentRestStart(0);
+      console.log("Before calling addShift", { currentDate, timeS, restTime });
       addShift(currentDate, timeS, restTime);
-      console.log("In startShift(): ", {timeS}, {formattedTime}, {restTime})
+      console.log("In startShift(): ", {formattedTime}, {restTime})
     }
   }
 
   function pauseShift() {
     console.log("Entering pauseShift");
-    const formattedTimeRest = formatTime(restTime);
 
     if(running){
-      restTimeRef.current = Date.now() - restTime * 1000;
+      restTimeRef.current = Date.now() - currentRestStart + timeRest;
       intervalRest.current = setInterval(() => {
-        setRestTime(Math.floor((Date.now() - restTimeRef.current) / 1000));
+        setTimeRest(prevTimeRest => prevTimeRest + 1);
       }, 1000);
-
       clearInterval(intervalRef.current);
       setRestRunning(true);
       setRunning(false);
-      setRestText('Lopeta\n');
+      setRestText('Lopeta');
       setRestColor(['#BE77EF', '#9546CD', '#6B16AB']);
+      setCurrentRestStart(Date.now());
     }
     else{
       startTimeRef.current = Date.now() - timeS * 1000;
@@ -165,47 +164,57 @@ const Work = () => {
         setTime(Math.floor(
           (Date.now() - startTimeRef.current) / 1000));
       }, 1000);
-      clearImmediate(intervalRest.current);
-      setTimeRest(formattedTimeRest);
+      clearInterval(intervalRest.current);
+
+      const newRestTime = Math.floor((Date.now() - currentRestStart + timeRest) / 1000);
+      setRestTime(prevRestTimes => [...prevRestTimes, newRestTime]);
+
+      setCurrentRestStart(0);
+      setTimeRest(0);
       setRestRunning(false);
       setRunning(true);
-      setRestText('Aloita tauko\n');
+      setRestText('Tauko');
       setShowInfoRestStart(false);
       setShowInfoRestEnd(true);
-
       setRestColor(['#77DEEF', '#46BACD', '#1696AB']);
-      console.log("In pauseShift(); ", {restTime})
+      console.log("Before calling addShift (pause)", { currentDate, timeS, restTime });
+      addShift(new Date(), timeS, restTime);
+      console.log("In pauseShift(); ", {restTime});
     }
-    console.log("Exiting pauseShift")
+    console.log("Exiting pauseShift");
   };
 
+  let counter = 0;
 
-  const formatTime = (timeInSeconds) => {
+  const formatTime = (timeInSeconds, resetCounter = false) => {
+    if (Array.isArray(timeInSeconds)) {
+      return timeInSeconds.map((rest, index) => {
+        return `\nTauko ${resetCounter ? ++counter : ''}: ${formatTime(rest, true)}`;
+      }).join('');
+    }
+  
     const hours = Math.floor(timeInSeconds / 3600);
     const minutes = Math.floor((timeInSeconds % 3600) / 60);
     const seconds = timeInSeconds % 60;
   
-    return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    return `${resetCounter ? '00' : hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
   return (
 
-    <View style={styles.container}>
+    <View style={styles.containerWork}>
       <Drawer.Screen options={{
         title: "Koti", 
         headerShown: true, 
         headerLeft: () => <DrawerToggleButton/>}} 
       />
-
-      <View style={styles.hero}>
+      <View style={styles.heroWork}>
         <Text style={styles.heroText}>Massit</Text>
       </View>
-
       <View style={styles.buttons}>
         <LinearGradient
           colors={startColor}
           style={styles.buttonStart}>
-            
             <TouchableOpacity
               style={styles.buttonStart}
               onPress={() => {
@@ -219,20 +228,17 @@ const Work = () => {
               <Text style={styles.buttonStartText}>
                 {startText} 
                 {showInfoShiftStart && (
-                  <Text>Kestänyt: {timeS}</Text>
+                  <Text>{'\n'}Kestänyt: {formatTime(timeS)}</Text>
                 )}
 
                 {showInfoShiftEnd && (
                   <Text>{timeShift}</Text>
                 )}
-
               </Text>
             </TouchableOpacity>
-
         </LinearGradient>
       </View>
       <View style={styles.buttonContainer}>
-
         <LinearGradient
           colors={restColor}
           style={styles.buttonAdd}>
@@ -247,34 +253,17 @@ const Work = () => {
             >
             <Text style={styles.buttonAddText}>
               {restText} 
-                {showInfoShiftStart && (
-                  <Text>Kestänyt: {restTime}</Text>
-                )}
-
-                {showInfoShiftEnd && (
-                  <Text>Edellinen tauko: {timeRest}</Text>
-                )}
+              {showInfoRestStart && (
+                <Text>{'\n'}Kestänyt: {formatTime(timeRest)}</Text>
+              )}
+              {showInfoRestEnd && (
+                <Text>{formatTime(restTime, restTime)}</Text>
+              )}
             </Text>
           </TouchableOpacity>
         </LinearGradient>
-
-        <LinearGradient
-          colors={addColor}
-          style={styles.buttonAdd}>
-          <TouchableOpacity
-            style={styles.buttonAdd}
-            onPress={() => {
-              handleAddColor();
-            }}>
-            <Text style={styles.buttonAddText}>HCT-</Text>
-            <Text style={styles.buttonAddText}>lisä</Text>
-          </TouchableOpacity>
-        </LinearGradient>
-
       </View>
     </View>
-
-
     );
 }
 

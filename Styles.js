@@ -7,17 +7,36 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         alignContent: 'space-between',
         flexDirection: 'column',
-      },
+    },
+    containerWork: {
+        flex: 1,
+        backgroundColor: '#95EBFB',
+        alignItems: 'center',
+        flexDirection: 'column',
+    },
     hero: {
         textAlign: 'center',
-        paddingTop: 10,
+        paddingTop: 100,
         paddingBottom: 50,
     },
+    heroWork: {
+        textAlign: 'center',
+        padding: 50,
+    },
     heroText: {
+        fontFamily: "MarheyRegular",
         fontSize: 60,
     },
     heroTextShift: {
         fontSize: 40,
+    },
+    box: {
+        paddingTop: 25,
+        paddingBottom: 50,
+    },
+    boxText: {
+        fontSize: 30,
+        fontFamily: "MarheyRegular",
     },
     input: {
         flexDirection: 'row',
@@ -30,7 +49,7 @@ export const styles = StyleSheet.create({
     inputText: {
         flex: 1,
         fontSize: 20,
-        backgroundColor:  '#FFFFFF',
+        backgroundColor: '#FFFFFF',
         padding: 10,
     },
     button: {
@@ -47,12 +66,6 @@ export const styles = StyleSheet.create({
         fontSize: 20,
         color: '#EBF3F3'
     },
-    box: {
-        padding: 50
-    },
-    boxText: {
-        fontSize: 16
-    },
     buttons: {
         marginBottom: 50
     },
@@ -67,6 +80,7 @@ export const styles = StyleSheet.create({
     buttonStartText: {
         fontSize: 20,
         fontWeight: 'bold',
+        textAlign: 'center',
     },
     buttonContainer: {
         flex: 1,
@@ -84,7 +98,7 @@ export const styles = StyleSheet.create({
         
     },
     buttonAddText: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
     },
@@ -110,5 +124,41 @@ export const styles = StyleSheet.create({
         alignSelf: 'strech',
         justifyContent: 'space-between',
         margin: 8,
+    },
+    showShifts: {
+        alignItems: 'center',
+        alignSelf: 'strech',
+        margin: 10,
+    },
+    linearGradient: {
+        borderRadius: 5,
+        width: 300,
+    },
+    shiftsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderRadius: 5,
+        margin: 2,
+        backgroundColor: '#fff',
+        padding: 10,
+      },
+    shifts: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        //fontFamily: 'Gill Sans',
+        //backgroundColor: '#95EBFB',
+    },
+    shiftsText: {
+        fontSize: 16,
+        fontWeight: 'light',
+        color: '#135771',
+    },
+    shiftsRemove: {
+        fontSize: 16,
+        //fontFamily: 'Gill Sans',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        color: '#BE77EF',
     },
 })
