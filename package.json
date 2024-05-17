@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@react-navigation/drawer": "^6.6.6",
-    "expo": "~49.0.15",
+    "expo": "~51.0.8",
     "expo-constants": "~14.4.2",
     "expo-linear-gradient": "~12.3.0",
     "expo-linking": "~5.0.2",
